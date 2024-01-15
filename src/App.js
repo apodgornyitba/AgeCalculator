@@ -1,7 +1,7 @@
 import './App.css';
 import {Button, Card, TextField} from "@mui/material";
 import icon from './assets/images/icon-arrow.svg'
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 function App() {
     const [years, setYears] = useState('--')
@@ -15,7 +15,19 @@ function App() {
     const [dayError, setDayError] = useState('')
     const [monthError, setMonthError] = useState('')
     const [yearError, setYearError] = useState('')
-    const [dateError, setDateError] = useState('')
+
+    const [rollingClass, setRollingClass] = useState('');
+
+    useEffect(() => {
+        if (years === '--' && months === '--' && days === '--') {
+            return
+        }
+        setRollingClass('rollingNumber');
+        const timeout = setTimeout(() => {
+            setRollingClass('');
+        }, 1000);
+        return () => clearTimeout(timeout);
+    }, [years, months, days]);
 
     function handleDayChange(event) {
         const input = event.target.value;
@@ -54,17 +66,86 @@ function App() {
     }
 
     function validateDate() {
-        //Using an if statement, validate that the date is a valid date
-        //If the month does not have 31 days, then the day must be less than 31, if not set dateError to 'Must be a valid date'
-        //If the month is February and the year is not a leap year, then the day must be less than 28, if not set dateError to 'Must be a valid date'
-        //If the month is February and the year is a leap year, then the day must be less than 29, if not set dateError to 'Must be a valid date'
-        //If the date is past today's date, then set dateError to 'Must be in the past'
-        //If the date is valid, then set dateError to ''
+        const intDay = parseInt(day)
+        const intMonth = parseInt(month)
+        const intYear = parseInt(year)
 
+        if (intMonth === 2 && intYear % 4 === 0 && intDay > 29) {
+            setDayError('Must be a valid date')
+            setMonthError(' ')
+            setYearError(' ')
+            return false
+        } else if (intMonth === 2 && intYear % 4 !== 0 && intDay > 28) {
+            setDayError('Must be a valid date')
+            setMonthError(' ')
+            setYearError(' ')
+            return false
+        } else if ((intMonth === 4 || intMonth === 6 || intMonth === 9 || intMonth === 11) && intDay > 30) {
+            setDayError('Must be a valid date')
+            setMonthError(' ')
+            setYearError(' ')
+            return false
+        } else if (intYear > 2024 || (intYear === 2024 && intMonth > 1) || (intYear === 2024 && intMonth === 1 && intDay > 15)) {
+            setDayError('Must be in the past')
+            setMonthError(' ')
+            setYearError(' ')
+            return false
+        } else {
+            setDayError('')
+            setMonthError('')
+            setYearError('')
+            return true
+        }
 
     }
 
     function handleCalculateOnClick() {
+        if (day === '' || month === '' || year === '') {
+            setDays('--')
+            setMonths('--')
+            setYears('--')
+            return
+        }
+        if (!validateDate()) {
+            setDays('--')
+            setMonths('--')
+            setYears('--')
+            return
+        }
+        const intDay = parseInt(day)
+        const intMonth = parseInt(month)
+        const intYear = parseInt(year)
+
+        const today = new Date()
+        let todayDay = today.getDate()
+        let todayMonth = today.getMonth() + 1
+        let todayYear = today.getFullYear()
+
+        if (intDay > todayDay) {
+            todayMonth -= 1
+            if (intMonth === 4 || intMonth === 6 || intMonth === 9 || intMonth === 11) {
+                todayDay += 30
+            } else if (intMonth === 2 && intYear % 4 === 0) {
+                todayDay += 29
+            } else if (intMonth === 2 && intYear % 4 !== 0) {
+                todayDay += 28
+            } else {
+                todayDay += 31
+            }
+        }
+        const dayDiff = (todayDay - intDay).toString()
+
+        if (intMonth > todayMonth) {
+            todayMonth += 12
+            todayYear -= 1
+        }
+        const monthDiff = (todayMonth - intMonth).toString()
+
+        const yearDiff = (todayYear - intYear).toString()
+
+        setDays(dayDiff)
+        setMonths(monthDiff)
+        setYears(yearDiff)
 
     }
 
@@ -96,17 +177,29 @@ function App() {
                       '& .MuiInputBase-input[type="number"]::-webkit-inner-spin-button, & .MuiInputBase-input[type="number"]::-webkit-outer-spin-button': {
                           WebkitAppearance: 'none',
                           margin: 0,
-                      }
+                      },
+                      '& .rollingNumber': {
+                          animation: 'spin 0.0001s linear infinite',
+                          display: 'inline-block',
+                      },
+                      '@keyframes spin': {
+                          '0%': {
+                              transform: 'rotateX(0deg)',
+                          },
+                          '100%': {
+                              transform: 'rotateX(360deg)',
+                          },
+                      },
                   }}>
                 <div className="date">
                     <div className="day">
-                        <p>DAY</p>
+                        <p style={{color: dayError ? 'hsl(0, 100%, 67%)' : 'inherit'}}>DAY</p>
                     </div>
                     <div className="month">
-                        <p>MONTH</p>
+                        <p style={{color: dayError ? 'hsl(0, 100%, 67%)' : 'inherit'}}>MONTH</p>
                     </div>
                     <div className="year">
-                        <p>YEAR</p>
+                        <p style={{color: dayError ? 'hsl(0, 100%, 67%)' : 'inherit'}}>YEAR</p>
                     </div>
                 </div>
                 <div className="textEntry">
@@ -154,15 +247,15 @@ function App() {
                 </div>
                 <div className="ageDisplay">
                     <div className="years">
-                        <h1 style={{color: 'hsl(259, 100%, 65%)'}}>{years}</h1>
+                        <h1 className={rollingClass} style={{color: 'hsl(259, 100%, 65%)'}}>{years}</h1>
                         <h1>&nbsp;years</h1>
                     </div>
                     <div className="months">
-                        <h1 style={{color: 'hsl(259, 100%, 65%)'}}>{months}</h1>
+                        <h1 className={rollingClass} style={{color: 'hsl(259, 100%, 65%)'}}>{months}</h1>
                         <h1>&nbsp;months</h1>
                     </div>
                     <div className="days">
-                        <h1 style={{color: 'hsl(259, 100%, 65%)'}}>{days}</h1>
+                        <h1 className={rollingClass} style={{color: 'hsl(259, 100%, 65%)'}}>{days}</h1>
                         <h1>&nbsp;days</h1>
                     </div>
                 </div>
