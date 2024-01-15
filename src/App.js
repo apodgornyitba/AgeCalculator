@@ -1,5 +1,5 @@
 import './App.css';
-import {Button, Card, TextField} from "@mui/material";
+import {Button, Card, TextField, Tooltip} from "@mui/material";
 import icon from './assets/images/icon-arrow.svg'
 import {useEffect, useState} from "react";
 
@@ -25,7 +25,7 @@ function App() {
         setRollingClass('rollingNumber');
         const timeout = setTimeout(() => {
             setRollingClass('');
-        }, 1000);
+        }, 1500);
         return () => clearTimeout(timeout);
     }, [years, months, days]);
 
@@ -170,7 +170,7 @@ function App() {
                           width: '115px',
                       },
                       '& .Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderWidth: '1px',
+                          borderWidth: '1px !important',
                           borderColor: 'hsl(259, 100%, 65%) !important',
 
                       },
@@ -228,21 +228,23 @@ function App() {
                 <div className="lineContainer">
                     <hr className="line"/>
                     <div>
-                        <Button
-                            onClick={handleCalculateOnClick}
-                            sx={{
-                                backgroundColor: 'hsl(259, 100%, 65%)',
-                                borderRadius: '50%',
-                                height: '75px',
-                                width: '75px',
-                                boxShadow: 'none',
-                                '&:hover': {
-                                    backgroundColor: 'black',
-                                },
-                            }}
-                        >
-                            <img src={icon} alt="icon"/>
-                        </Button>
+                        <Tooltip title="Calculate" arrow>
+                            <Button
+                                onClick={handleCalculateOnClick}
+                                sx={{
+                                    backgroundColor: 'hsl(259, 100%, 65%)',
+                                    borderRadius: '50%',
+                                    height: '75px',
+                                    width: '75px',
+                                    boxShadow: 'none',
+                                    '&:hover': {
+                                        backgroundColor: 'black',
+                                    },
+                                }}
+                            >
+                                <img src={icon} alt="icon"/>
+                            </Button>
+                        </Tooltip>
                     </div>
                 </div>
                 <div className="ageDisplay">
